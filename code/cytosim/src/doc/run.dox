@@ -1,0 +1,270 @@
+// Cytosim was created by Francois Nedelec. Copyright 2007-2017 EMBL.
+
+/**
+ @page RunCytosim How to Run Simulations
+
+ This describes some simple ways to run one or many simulations on a personal computer,
+ using the unix-style command line interface. To get the command-line interface on Mac OS X,
+ you simply open the Terminal located in Applications/Utilities.
+ The command `cd` allow you to navigate the directory structure of your disc,
+ and change the 'current working directory'. You should use it to go to the directory
+ where cytosim's executables and parameter file are located:
+ 
+ If the directory is named `run`, enter the following line and press 'enter':
+ @code
+ cd run
+ @endcode
+
+ You can print the name of the 'current working directory' with `pwd`,
+ and list its content with `ls`:
+ @code
+ ls
+ @endcode
+
+ We have used `cd` and `ls`, which are two basic commands of the `Command Line Interface`.
+ If you are unfamiliar with it, you should first follow one of the many excellent tutorials available online.
+
+
+<h2> Live Run </h2>
+
+ A `live run` will perform a simulation and display its result on the fly.
+ All the work is done in memory, and nothing is saved on the disk.
+ To run a program, you need to specify the full path of the corresponding executable.
+ If cytosim's executable `play` is present in the current directory, you can type:
+ 
+ @code
+ ./play live
+ @endcode
+ 
+ this should open a graphical window and start a live simulation using the file
+ `config.cym` that is located in the current working directory.
+ You can specify another configuration file:
+ 
+ @code
+ ./play live spindle.cym
+ @endcode
+
+ By configuring your <a href="http://en.wikipedia.org/wiki/PATH_(variable)">PATH</a>
+ to include the directory where the executable is located, you can ommit the inital '.':
+ 
+ @code
+ play live spindle.cym
+ @endcode
+
+ In the following, only the executable name will be specified. If you get the error `command not found`,
+ you need either to specify the full path of the executable, or to configure your search path (`$PATH`).
+
+
+<h2> Normal Run </h2>
+ 
+ The canonical way to use cytosim is to call `sim` to calculate a simulation,
+ and then `play` to display the results once `sim` has finished:
+ 
+ @code
+ sim
+ play
+ @endcode
+ 
+ By default, `sim` uses the configuration file `config.cym` in the current directory.
+ If you do not want to wait until `sim` finishes, you may run `sim` in the background:
+ 
+ @code
+ sim&
+ @endcode
+ 
+ You can then use `play` to display the partial results at any time, even if `sim` is still running.
+ This works because `sim` access the result files for writting, and `play` only for reading.
+ You could also open a second terminal window to run `play` while `sim` is still running.
+
+ To learn how to convert the results into a movie, see @ref DisplayMovie.
+
+
+<h2> Overnight Run </h2>
+ 
+ You should not start two `sim` in the same directory, because the output files
+ are always named in the same way, and the results will be losts. The good practice
+ is to run every simulation in a separate directory.
+ You may however use `play` or `play live` in a directory where `sim` is working.
+
+ You can let `sim` run in its own terminal window, and wait for it to complete.
+ However, if the calculation requires an hour to complete or more,
+ you can use <a href="http://en.wikipedia.org/wiki/Nohup">nohup</a> to release the
+ terminal, and prevent `sim` from being automatically terminated when you log out:
+
+ Here is an example:
+ @code
+ mkdir run0
+ cp config.cym run0
+ cd run0
+ nohup ../sim&
+ @endcode
+
+ To automate this, you can use the script `/python/run/start.py`:
+ it will automatically create the new directory, and start the simulation:
+ @code
+ start.py sim config.cym
+ @endcode
+
+ You can call `start.py` many times, and the new directories will be named `run0000`, `run0001`, etc.
+
+
+<h2> Parametric Scan </h2>
+
+ The process of running many simulations can be automated with the python scripts
+ located in `/python/run`. Here we illustrate how to scan one parameter by using `pre_config.py`.
+ The same technique makes it possible to scan many parameters.
+
+ First create a template file from your existing config file:
+ @code
+ cp config.cym config.cym.tpl
+ @endcode
+ 
+ Then edit this template file to replace the parameter value(s) that you would like
+ to vary with some python code surrounded in double-brackets.
+ This code will specify how the parameter is varied, for example:
+ @code
+ set hand binder
+ {
+   binding_rate = [[ random.uniform(0,1) ]]
+ }
+ @endcode
+ 
+ Here `binding_rate` will be set randomly between 0 and 1 following a uniform distribution.
+ Any plain python code should work, including functions from the <a href="http://docs.python.org/library/random.html">Random Module</a>.
+ It is also possible to use multiple bracketed expressions in the same file to vary several parameters.
+ Please check the help provided by the script itself by running `pre_config.py help`.
+
+ 
+ You are now ready to use `pre_config.py` to generate a set of config files:
+ @code
+ pre_config.py 100 config.cym.tpl
+ @endcode
+ 
+ This should create 100 files called `config????.cym` and
+ you can use `go_sim.py` to run simulations with all these files sequentially:
+ 
+ @code
+ go_sim.py config????.cym
+ @endcode
+ 
+ You may also want to run these jobs in parallel, if your machine has multiple cores.
+ For example the UNIX command 'xargs' can be used to run 4 processes in parallel:
+
+ @code
+ ls config????.cym | xargs -P 4 -L 1 go_sim.py sim
+ @endcode
+
+ The script `start.py` can be used to start long-running jobs.
+ Please check the help provided by the scripts (`go_sim.py help` and `start.py help`).
+
+
+<h2> Visual Inspection </h2>
+
+ You should now have many completed simulations, each in a different directory.
+ You can look at them, using a few python scripts located in /python/look:
+
+ Script          |   Typical usage                      
+ ----------------|----------------------------------------------------
+ `make_image.py` | create one image in each directory
+ `make_movie.py` | create a movie in each directory
+ `make_page.py`  | create a HTML page to easily browse all the images
+ `scan.py`       | run a command in multiple directories
+
+
+ You can get information on how to use these python scripts, for example:
+ @code
+ make_page.py help
+ @endcode
+
+ For example:
+ 
+ Create HTML directory with a single image
+ @code
+ make_image.py 'play window_size=1024,128 frame=100' run*
+ make_page.py run*
+ @endcode
+ 
+ Create HTML directory with images every 100 frame:
+ @code
+ scan.py '../play movie period=100 size=256 label={}' run*
+ make_page.py run*
+ @endcode
+ 
+ Open `page.html` in a browser to view the results.
+ 
+ 
+<h2> Analysis </h2>
+
+ You can also analyse the runs in a non-visual way:
+
+  Program         |   Typical usage
+ -----------------|-----------------------------------------------------------
+ `report`         | extract data from trajectory files
+ `get_data.py`    | collect data from the directories into one master file
+ `read_config.py` | read and format a config file
+ `make_plots.py`  | make a plot
+
+ Cytosim's tool `report` will generate some output from the trajectory file of a completed simulation.
+ You may use `scan.py` to analyse a set of directories.
+ It is however generally better to include some reporting directly into the config file,
+ with the @ref SimCommands "command" `write`.
+
+
+<h3> Restarting a Simulation </h3>
+
+ One can start a simulation from a frame stored in a trajectory file.
+ Follow these steps:
+  1. build the accessory program `frametool` if needed.
+  2. using `frametool`, extract the desired frame.
+  3. adjust the `config.cym` to import this frame.
+
+For 1, you may use `make`:
+@code
+ make frametool
+@endcode
+
+For 2, you need to provide a trajectory file, and the index of the frame to extract:
+@endcode
+ frametool objects.cmo 30 > objects.cmi
+@endcode
+This will create the file ‘objects.cmi’ containing frame 30, where the frame index start at 0. You need to replace `30` with the appropriate index. Note that ‘frametool objects.cmo’ will tell you how many frames are contained in the file.
+
+For 3, use the ‘import’ command within a config file to read the frame:
+
+@code
+import objects objects.cmi
+
+run 1000000 simul *
+{
+   nb_frames = 100
+}
+@endcode
+
+The ‘import’ command replaces all the objects of the simulation, without changing the Properties. The config file should thus define all the Properties with ’set’ as usual, but skip all the ’new’ instructions. From an existing configuration, one simply adds the 'import' and deletes all the 'new'.
+
+However, any ’new’ after ‘import’ will add objects as usual. The simulation should be started in a fresh directory, as ’sim’ will erase the ‘object.cmo’ file.
+
+One can merge two trajectory files later with 'cat' if necessary:
+@code
+cat objects1.cmo objects2.cmo > objects.cmo
+@endcode
+
+
+
+<h3> Conversion </h3>
+
+With `sim`, it is possible to extract a frame from a binary trajectory file,
+and export it in the text-based format. The text-based format is a plain ascii
+file containing all the simulation state variables.
+
+
+Simply execute a following config file:
+@code
+read properties.cmo
+import objects.cmo { frame = 10 }
+export objects objects.txt { binary=0 }
+@endcode
+
+
+*/
+

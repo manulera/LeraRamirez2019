@@ -1,0 +1,179 @@
+// Cytosim was created by Francois Nedelec. Copyright 2007-2017 EMBL.
+
+/**
+ @page RunCytosimPBS Submitting jobs to PBS
+
+ This is a step-by-step introduction to running simulations on a cluster running PBS.
+ This does not apply to EMBL Cluster.
+ 
+ <h2> Storage </h2>
+ 
+ You need a storage space that is accessible from the cluster, 
+ and also from your local machine.
+ For this we will use a group-disc.
+ The first step is thus to make sure you know how access the group disc,
+ and to make a fresh directory on this disc:
+ 
+ @code
+ cd /g/nedelec/steve
+ mkdir screen
+ @endcode
+ 
+ Here 'nedelec' is the name of the disc, and 'steve' is the name of the user.
+ You will need to substitute your username instead of 'steve' in the following commands!
+ 
+ 
+ <h2> Compile </h2>
+ 
+ Copy your code to this new directory on the group disc:
+ @code
+ cp -R ~/cytosim /g/nedelec/steve/screen/cytosim
+ @endcode
+
+ Log into buildnode: 
+ @code
+ ssh buildnode.embl.de
+ @endcode
+  
+ Edit `makefile.inc` to select compilation for the cluster:
+ @code
+ cd /g/nedelec/steve/screen/cytosim
+ vi makefile.inc
+ @endcode
+
+ You only need to change one line:
+ @code
+ MACHINE=embl-cluster
+ @endcode
+
+ Compile: 
+ @code
+ make sim
+ @endcode
+
+ Copy `sim` and check that it works:
+ @code
+ cp bin/sim ../sim
+ cd ..
+ ./sim info
+ @endcode
+
+
+ <h2> Prepare </h2>
+ 
+ You can now submit a parametric sweep to the cluster. We will illustrate a method
+ based on using a template configuration file, as explained in @ref RunCytosim.
+
+ You should be in the directory `/g/nedelec/steve/screen`,
+ and we will assume that the template file is `config.cym.tpl`.
+ 
+ Copy all the python scripts located in `python/run`:
+ @code
+ cp cytosim/python/run/*.py .
+ @endcode
+ 
+ Generate 100 config files:
+ @code
+ ./pre_config.py 100 config.cym.tpl
+ @endcode
+ 
+ Move them into a separate directory:
+ @code
+ mkdir cym
+ mv config????.cym cym/.
+ @endcode
+ 
+ You can now log out from `buildnode`:
+ @code
+ exit
+ @endcode
+ 
+ 
+ <h2> Submit </h2>
+ 
+ Log into sub-master: 
+ @code
+ ssh sub-master.embl.de
+ @endcode
+ 
+ Go to working directory:
+ @code
+ cd /g/nedelec/steve/screen
+ @endcode
+
+ Submit the jobs:
+ @code
+ ./submit.py cym/*.cym
+ @endcode
+ 
+ Optional: check that your jobs are in the queue:
+ @code
+ qstat -u steve
+ @endcode
+
+ You can now log out from `sub-master`:
+ @code
+ exit
+ @endcode
+ 
+
+ <h2> Optimal Cluster Usage </h2>
+
+ You can specifying that each job should be 'repeated' when you submit:
+ This can be interesting to runs multiple simulations with the same config,
+ for example to average over the natural stochasticity, or to gather statistics
+ about a process. Multiple config files will be distributed to different nodes.
+
+ Examples:
+ @code
+ ./submit.py 3 config.cym
+ @endcode
+ This will run 3 times with the same config file, sequentially on the same node.
+
+ @code
+ ./submit.py 3 cym/*.cym
+ @endcode
+ Each config file will be repeated 3 times, and these 3 runs will be done sequentially on the same node, but the different configs will be submitted to different nodes.
+ 
+ Note: When repeating a simulation, you need to make sure to set `random_seed=0` otherwise the results might be identical.
+
+
+ <h2> Post-processing </h2>
+ 
+ The interesting results will be in `/g/nedelec/steve/screen/save`, 
+ which should contain the completed runs as `run0000`, `run0001`, etc. 
+ 
+ The other directories will have accessory informations:
+ 
+  Directory      |   Content                     
+ ----------------|-----------------------------------------------------------
+ `output`        | collect standard output (normally empty)
+ `errors`        | collect standard error (normally empty)
+ `done`          | scripts created by `submit.py` that were before in `todo`
+ 
+ 
+ This data is only interesting if some error occured, 
+ and if everything went smoothly, you can delete it:
+ @code
+ rm -r output
+ rm -r errors
+ rm -r done
+ @endcode
+
+
+ There is also a file `log.txt` in every completed run, that can be deleted:
+ @code
+ rm save/*/log.txt
+ @endcode
+
+
+ <h2> Analysis </h2>
+
+ The analysis should normally be done on a local machine, rather than on the cluster.
+ You are not allowed to do it on `sub-master`.
+ 
+ The type of analysis depends very much on the project.
+ Some techniques are described in @ref RunCytosim.
+ 
+ */
+

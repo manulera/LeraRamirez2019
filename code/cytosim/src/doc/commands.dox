@@ -1,0 +1,64 @@
+// Cytosim was created by Francois Nedelec. Copyright 2007-2017 EMBL.
+
+
+/**
+ @page SimCommands List of commands
+
+ @copydetails Parser::parse
+ 
+ <hr>
+ 
+   <h2> Command <i> set </i></h2>
+   @copydetails Parser::parse_set 
+
+   <h2> Command <i> new </i></h2>
+   @copydetails Parser::parse_new
+   See also @ref NewObject
+
+   <h2> Command <i> run </i></h2>
+   @copydetails Parser::parse_run
+
+   <h2> Command <i> report </i></h2>
+   @copydetails Parser::parse_report
+
+ <hr>
+
+   <h2> Command <i> change </i></h2>
+   @copydetails Parser::parse_change
+
+   <h2> Command <i> delete </i></h2>
+   @copydetails Parser::parse_delete
+ 
+   <h2> Command <i> read </i></h2>
+   @copydetails Parser::parse_read
+
+   <h2> Command <i> import </i></h2>
+   @copydetails Parser::parse_import
+
+   <h2> Command <i> export </i></h2>
+   @copydetails Parser::parse_export
+
+ <hr>
+
+   <h2> Command <i> mark </i></h2>
+   @copydetails Parser::parse_mark
+
+   <h2> Command <i> repeat </i></h2>
+   @copydetails Parser::parse_repeat
+
+   <h2> Command <i> for </i></h2>
+   @copydetails Parser::parse_for
+
+   <h2> Command <i> end </i></h2>
+   @copydetails Parser::parse_end
+
+   <h2> Command <i> cut </i></h2>
+   @copydetails Parser::parse_cut
+
+   <h2> Command <i> call </i></h2>
+   @copydetails Parser::parse_call
+ 
+ <hr>
+
+ */
+

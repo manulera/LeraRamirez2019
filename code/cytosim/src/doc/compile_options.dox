@@ -1,0 +1,81 @@
+// Cytosim was created by Francois Nedelec. Copyright 2007-2017 EMBL.
+
+
+/**
+ @page CompileOptions Compile Options
+ @ingroup Compile
+
+ <h4>Dimensionality</h4>
+
+ The dimension of the simulation is selected in `src/math/dim.h`
+ @code
+ #define DIM 2
+ @endcode
+
+ You should always do 'make clean' after changing `DIM`.
+ 
+ <h4>Assertions</h4>
+
+ 
+ Assertions (a safety mechanism to speed up debugging) are turned on/off in `src/base/assert_macro.h`
+ You can disable assertions by defining NDEBUG:
+ @code
+ #define NDEBUG
+ @endcode
+ 
+ 
+ <h4>Precision</h4>
+ 
+ The precision of the floating points numbers can be selected in `src/math/real.h`
+ 
+ @code
+ //#define REAL_IS_FLOAT
+ @endcode
+ 
+Using double precision is strongly advised. The code was not optimized for single precision, and cytosim is thus not faster, but some calculation may fail because of the reduced precision.
+
+ 
+ <h4>Compiler Options</h4>
+ 
+ Compiler options can be selected by editing the file `makefile.inc`.
+ This file should be in the root of the distribution.
+ 
+ Select the machine on which you want to compile:
+ @code
+ MACHINE=mac
+ @endcode
+ 
+ Select the compiler:
+ @code
+ COMPILER=gcc
+ @endcode
+ 
+ Select the mode:
+ @code
+ MODE=F
+ @endcode
+ 
+ Use the `debug` mode to test new code, but to run extensive calculations, you should:
+ - disable assertions,
+ - compile with option `fast`
+ .
+ 
+ <h4>PNG support</h4>
+ 
+ You can install the PNG library (libpng) on your mac with <a href="http://www.macports.org">macPorts</a>:
+ @code
+ sudo port install libpng
+ @endcode
+ 
+ You can then enable PNG support by editing the `makefile.inc`:
+ @code
+ HAS_PNG = 1
+ @endcode
+ 
+ <h4>Documentation</h4>
+ 
+ The HTML documentation is built by <a href="http://www.doxygen.org">doxygen</a>
+ Please, use doxygen 1.8 or better.
+ 
+ */
+
